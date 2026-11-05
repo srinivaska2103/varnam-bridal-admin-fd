@@ -1,9 +1,25 @@
 import axios from 'axios';
 
-const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+/**
+ * Dynamically resolves the API Base URL at runtime.
+ * In production browsers, routes to `${origin}/api` which is reverse-proxied
+ * by Nginx directly to backend port 5000 (eliminates CORS, preflight, and DNS errors).
+ */
+export function getApiBaseUrl() {
+  if (typeof window !== 'undefined') {
+    const { hostname, origin } = window.location;
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    if (!isLocal) {
+      return `${origin}/api`;
+    }
+  }
+
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+}
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,6 +29,8 @@ export const apiClient = axios.create({
 // Request interceptor to attach Authorization token
 apiClient.interceptors.request.use(
   (config) => {
+    config.baseURL = getApiBaseUrl();
+
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('vexa_admin_token') || localStorage.getItem('vexa_auth_token');
       if (token) {

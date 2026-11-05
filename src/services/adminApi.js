@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient, getApiBaseUrl } from './apiClient';
 
 export const adminApi = {
   // OTP-based Super Admin Authentication
@@ -33,7 +33,7 @@ export const adminApi = {
   // 8. Reports & Exports
   getReports: (params = {}) => apiClient.get('/admin/reports', { params }),
   exportReportCsvUrl: (type, params = {}) => {
-    const baseURL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
+    const baseURL = getApiBaseUrl();
     const query = new URLSearchParams({ type, format: 'csv', ...params }).toString();
     return `${baseURL}/admin/reports?${query}`;
   },
